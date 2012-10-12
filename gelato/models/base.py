@@ -6,12 +6,12 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils import translation
 
-import caching.base
-import elasticutils.contrib.django as elasticutils
-import pyes.exceptions
-import queryset_transform
+#import caching.base
+#import elasticutils.contrib.django as elasticutils
+#import pyesxceptions
+#import queryset_transform
 
-from gelato.models import search
+#from gelato.models import search
 
 _locals = threading.local()
 _locals.skip_cache = False
@@ -26,33 +26,6 @@ def skip_cache():
     finally:
         _locals.skip_cache = old
 
-
-class SearchMixin(object):
-
-    @classmethod
-    def _get_index(cls):
-        indexes = settings.ES_INDEXES
-        return indexes.get(cls._meta.db_table) or indexes['default']
-
-    @classmethod
-    def index(cls, document, id=None, bulk=False, force_insert=False):
-        """Wrapper around pyes.ES.index."""
-        elasticutils.get_es().index(
-            document, index=cls._get_index(), doc_type=cls._meta.db_table,
-            id=id, bulk=bulk, force_insert=force_insert)
-
-    @classmethod
-    def unindex(cls, id):
-        es = elasticutils.get_es()
-        try:
-            es.delete(cls._get_index(), cls._meta.db_table, id)
-        except pyes.exceptions.NotFoundException:
-            # Item wasn't found, whatevs.
-            pass
-
-    @classmethod
-    def search(cls):
-        return search.ES(cls, cls._get_index())
 
 
 class _NoChangeInstance(object):
@@ -160,30 +133,6 @@ class OnChangeMixin(object):
         return result
 
 
-class TransformQuerySet(queryset_transform.TransformQuerySet):
-
-    def pop_transforms(self):
-        qs = self._clone()
-        transforms = qs._transform_fns
-        qs._transform_fns = []
-        return transforms, qs
-
-    def no_transforms(self):
-        return self.pop_transforms()[1]
-
-    def only_translations(self):
-        """Remove all transforms except translations."""
-        from gelato.translations import transformer
-        # Add an extra select so these are cached separately.
-        return (self.no_transforms().extra(select={'_only_trans': 1})
-                .transform(transformer.get_trans))
-
-    def transform(self, fn):
-        @functools.wraps(fn)
-        def wrapper(*args, **kw):
-            with skip_cache():
-                return fn(*args, **kw)
-        return super(TransformQuerySet, self).transform(wrapper)
 
 class RawQuerySet(models.query.RawQuerySet):
     """A RawQuerySet with __len__."""
@@ -201,13 +150,13 @@ class RawQuerySet(models.query.RawQuerySet):
         return len(list(self.__iter__()))
 
 
-class CachingRawQuerySet(RawQuerySet, caching.base.CachingRawQuerySet):
-    """A RawQuerySet with __len__ and caching."""
+#class CachingRawQuerySet(RawQuerySet, caching.base.CachingRawQuerySet):
+#   """A RawQuerySet with __len__ and caching."""
 
 # Make TransformQuerySet one of CachingQuerySet's parents so that we can do
 # transforms on objects and then get them cached.
-CachingQuerySet = caching.base.CachingQuerySet
-CachingQuerySet.__bases__ = (TransformQuerySet,) + CachingQuerySet.__bases__
+#CachingQuerySet = caching.base.CachingQuerySet
+#CachingQuerySet.__bases__ = (TransformQuerySet,) + CachingQuerySet.__bases__
 
 class UncachedManagerBase(models.Manager):
 
@@ -247,28 +196,8 @@ class UncachedManagerBase(models.Manager):
                 return self.create(**kw), True
 
 
-class ManagerBase(caching.base.CachingManager, UncachedManagerBase):
-    """
-    Base for all managers in AMO.
 
-    Returns TransformQuerySets from the queryset_transform project.
-
-    If a model has translated fields, they'll be attached through a transform
-    function.
-    """
-
-    def get_query_set(self):
-        qs = super(ManagerBase, self).get_query_set()
-        if getattr(_locals, 'skip_cache', False):
-            qs = qs.no_cache()
-        return self._with_translations(qs)
-
-    #def raw(self, raw_query, params=None, *args, **kwargs):
-    #    return CachingRawQuerySet(raw_query, self.model, params=params,
-    #                              using=self._db, *args, **kwargs)
-
-
-class ModelBase(SearchMixin, caching.base.CachingMixin, models.Model):
+class ModelBase(models.Model):
     """
     Base class for AMO models to abstract some common features.
 
@@ -279,8 +208,8 @@ class ModelBase(SearchMixin, caching.base.CachingMixin, models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
-    objects = ManagerBase()
-    uncached = UncachedManagerBase()
+    #objects = ManagerBase()
+    #uncached = UncachedManagerBase()
 
     class Meta:
         abstract = True

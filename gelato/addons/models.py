@@ -10,15 +10,15 @@ from gelato.translations.fields import (LinkifiedField, TranslatedField,
                                         PurifiedField)
 from gelato.models.fields import DecimalCharField
 from gelato.models.base import OnChangeMixin, ModelBase
-from gelato.models.versions import VersionBase
+#from gelato.models.versions import VersionBase
 
 from gelato.constants import base
 
 
-class AddonBase(OnChangeMixin, ModelBase):
+class AddonBase(ModelBase):#OnChangeMixin, ModelBase):
     STATUS_CHOICES = base.STATUS_CHOICES.items()
-    LOCALES = [(translation.to_locale(k).replace('_', '-'), v) for k, v in
-               do_dictsort(settings.LANGUAGES)]
+    #LOCALES = [(translation.to_locale(k).replace('_', '-'), v) for k, v in
+    #           do_dictsort(settings.LANGUAGES)]
 
     guid = models.CharField(max_length=255, unique=True, null=True)
     slug = models.CharField(max_length=30, unique=True, null=True)
@@ -104,7 +104,7 @@ class AddonBase(OnChangeMixin, ModelBase):
 
     wants_contributions = models.BooleanField(default=False)
     paypal_id = models.CharField(max_length=255, blank=True)
-    charity = models.ForeignKey('Charity', null=True)
+    #charity = models.ForeignKey('Charity', null=True)
     # TODO(jbalogh): remove nullify_invalid once remora dies.
     suggested_amount = DecimalCharField(
         max_digits=8, decimal_places=2, nullify_invalid=True, blank=True,
@@ -128,12 +128,12 @@ class AddonBase(OnChangeMixin, ModelBase):
     get_satisfaction_product = models.CharField(max_length=255, blank=True,
                                                 null=True)
 
-    authors = models.ManyToManyField('users.UserProfile', through='AddonUser',
-                                     related_name='addons')
-    categories = models.ManyToManyField('Category', through='AddonCategory')
-    dependencies = models.ManyToManyField('self', symmetrical=False,
-                                          through='AddonDependency',
-                                          related_name='addons')
+#    authors = models.ManyToManyField('users.UserProfile', through='AddonUser',
+#                                     related_name='addons')
+#    categories = models.ManyToManyField('Category', through='AddonCategory')
+#    dependencies = models.ManyToManyField('self', symmetrical=False,
+#                                          through='AddonDependency',
+#                                          related_name='addons')
     premium_type = models.PositiveIntegerField(
                                     choices=base.ADDON_PREMIUM_TYPES.items(),
                                     default=base.ADDON_FREE)
@@ -142,11 +142,13 @@ class AddonBase(OnChangeMixin, ModelBase):
     app_domain = models.CharField(max_length=255, blank=True, null=True,
                                   db_index=True)
 
-    _current_version = models.ForeignKey(VersionBase, related_name='___ignore',
-            db_column='current_version', null=True, on_delete=models.SET_NULL)
+#    _current_version = models.ForeignKey('versions.VersionBase',
+#            related_name='___ignore',
+#            db_column='current_version', null=True, on_delete=models.SET_NULL)
     # This is for Firefox only.
-    _backup_version = models.ForeignKey(VersionBase, related_name='___backup',
-            db_column='backup_version', null=True, on_delete=models.SET_NULL)
+#    _backup_version = models.ForeignKey('versions.VersionBase',
+#            related_name='___backup',
+#            db_column='backup_version', null=True, on_delete=models.SET_NULL)
     _latest_version = None
     make_public = models.DateTimeField(null=True)
     mozilla_contact = models.EmailField()
@@ -161,8 +163,8 @@ class AddonBase(OnChangeMixin, ModelBase):
         db_table = 'addons'
         app_label = 'addons'
 
-    @staticmethod
-    def __new__(cls, *args, **kw):
+    #@staticmethod
+    #def __new__(cls, *args, **kw):
         # # Return a Webapp instead of an Addon if the `type` column says this is
         # # really a webapp.
         # try:
@@ -176,15 +178,15 @@ class AddonBase(OnChangeMixin, ModelBase):
         #     or kw and kw.get('type') == base.ADDON_WEBAPP):
         #     from gelato.models.webapp import Webapp
         #     cls = Webapp
-        return super(AddonBase, cls).__new__(cls, *args, **kw)
+    #    return super(AddonBase, cls).__new__(cls, *args, **kw)
 
     def __unicode__(self):
         return u'%s: %s' % (self.id, self.name)
 
-    def __init__(self, *args, **kw):
-        super(AddonBase, self).__init__(*args, **kw)
-        self._first_category = {}
+#    def __init__(self, *args, **kw):
+#        super(AddonBase, self).__init__(*args, **kw)
+#        self._first_category = {}
 
-    def save(self, **kw):
-        self.clean_slug()
-        super(AddonBase, self).save(**kw)
+#    def save(self, **kw):
+#        self.clean_slug()
+#        super(AddonBase, self).save(**kw)

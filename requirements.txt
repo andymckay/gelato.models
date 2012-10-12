@@ -1,6 +1,14 @@
 Django==1.4.1
-django-cache-machine==0.6
-pyes==0.16
+#django-cache-machine==0.6
+#pyes==0.16
+gelato.constants==0.1.4
+django-nose==1.1
+nose
+MySQL-python==1.2.3c1
+bleach==1.1.5
+html5lib
+jinja2
 
+-e git://github.com/jbalogh/test-utils.git@3c2214d193d1b0c0d74c77b3731c8afb0173e669#egg=test-utils
 -e git://github.com/mozilla/elasticutils.git@98f210e2b3fe2451b63ad6abbf50e8ab690ef5a3#egg=elasticutils
 -e git://github.com/clouserw/tower.git@1dfa7345019e79eb7dfce6315c0493e68e6b134a#egg=tower
